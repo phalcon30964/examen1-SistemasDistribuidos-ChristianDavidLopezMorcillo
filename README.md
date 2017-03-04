@@ -41,6 +41,13 @@ http {
         }
     }
 }
+
+```
+* Se agregan los permisos necesario para el cortafuegos.
+```sh
+ iptables -I INPUT 5 -p tcp -m state --state NEW -m tcp --dport 8080 -j ACCEPT
+ iptables -I INPUT 5 -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
+ service iptables save
 ```
 * Se inicia el servicio Nginx.
 ```sh
@@ -49,3 +56,19 @@ sudo service nginx start
 
 <b>Para el servidor web: </b>
 
+* Se instala el servicio web apache:
+```sh
+sudo yum install httpd
+```
+* Se instala el servicio php:
+```sh
+sudo yum install php
+```
+* Se instala el servicio php-mysql:
+```sh
+sudo yum install php-mysql
+```
+* Se instala el servicio mysql:
+```sh
+sudo yum install mysql
+```
