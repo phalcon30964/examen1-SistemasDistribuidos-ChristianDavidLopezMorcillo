@@ -9,9 +9,9 @@ A00312096
 
 1. Consigne los comandos de linux necesarios para el aprovisionamiento de los servicios solicitados.
 
-Para el balanceador de cargas:
+<b> Para el balanceador de cargas: </b>
 
-Se escoge usar el programa Nginx balanceando cargas bajo el esquema round robin.
+* Se escoge usar el programa Nginx balanceando cargas bajo el esquema round robin.
 
 Primero se instala el repositorio necesario para poder instalar Ngix, esto se realiza agregando a los repositorios de yum un archivo .repo que indique la ruta para descargar nginx. El archivo se debe agregar en la ruta “/etc/yum.repos.d/” y debe tener la información:
 ```text
@@ -22,12 +22,12 @@ gpgcheck=0
 enabled=1
 ```
 
-Se realiza la instalación de Nginx usando yum y se inicia el servicio.
+* Se realiza la instalación de Nginx usando yum y se inicia el servicio.
 ```sh
 sudo yum install nginx
 ```
 
-Se crea el archivo /etc/nginx/nginx.conf y allí se especifica la ip de los servidores que atenderán las peticione, de la siguiente forma:
+* Se crea el archivo /etc/nginx/nginx.conf y allí se especifica la ip de los servidores que atenderán las peticione, de la siguiente forma:
 ```txt
 http {
     upstream webservers {
@@ -42,10 +42,10 @@ http {
     }
 }
 ```
-Se inicia el servicio Nginx.
+* Se inicia el servicio Nginx.
 ```sh
 sudo service nginx start
 ```
 
-Para el servidor web:
+<b>Para el servidor web: </b>
 
