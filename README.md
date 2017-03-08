@@ -161,9 +161,104 @@ GRANT ALL PRIVILEGES ON *.* to '<%=@usuarioweb_db%>'@'<%=@ip_db1%>' IDENTIFIED b
 
 2. Escriba el archivo Vagrantfile para realizar el aprovisionamiento, teniendo en cuenta definir: maquinas a aprovisionar, interfaces solo anfitrión, interfaces tipo puente, declaración de cookbooks, variables necesarias para plantillas (10%)
 
-Se crea el archivo vagrantfile en la carpeta 
+Se crea el siguinte archivo vagrantfile. En él se crean 4 maquinas. 1 máquina que servirá como balanceador de carga, usando nginx, llamada centos-nginx. 2 máquinas que servirán como servidores web, utilizando apache, llamadas centos-webX. 1 máquina que se usará como servidor de base de datos, usando mysql-server, llamada centos-db. A continuacion se ilustra el codigo y se muestra la configuracion dada.
+
+```ruby
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.ssh.insert_key = false
+  config.vm.define :centos_nginx do |web|
+    web.vm.box = "Centos64"
+    web.vm.network :private_network, ip: "192.168.33.12"
+    web.vm.network "public_network", bridge: "enp5s0" , ip: "192.168.131.128"
+    web.vm.provider :virtualbox do |vb|
+      vb.customize ["modifyvm", :id, "--memory", "512","--cpus", "1", "--name", "centos-nginx" ]
+    end
+    config.vm.provision :chef_solo do |chef|
+      chef.cookbooks_path = "cookbooks"
+      chef.add_recipe "nginx"
+    end
+  end
+  config.vm.define :centos_web1 do |web|
+    web.vm.box = "Centos64_updated"
+    web.vm.network :private_network, ip: "192.168.33.13"
+    web.vm.network "public_network", bridge: "enp5s0" , ip: "192.168.131.127"
+    web.vm.provider :virtualbox do |vb|
+      vb.customize ["modifyvm", :id, "--memory", "512","--cpus", "1", "--name", "centos-web1" ]
+    end
+    config.vm.provision :chef_solo do |chef|
+      chef.cookbooks_path = "cookbooks"
+      chef.add_recipe "web"
+      chef.json ={"web" => {"idServer" => "1"}}
+    end
+  end
+  config.vm.define :centos_web2 do |web|
+    web.vm.box = "Centos64_updated"
+    web.vm.network :private_network, ip: "192.168.33.14"
+    web.vm.network "public_network", bridge: "enp5s0" , ip: "192.168.131.126"
+    web.vm.provider :virtualbox do |vb|
+      vb.customize ["modifyvm", :id, "--memory", "512","--cpus", "1", "--name", "centos-web2" ]
+    end
+    config.vm.provision :chef_solo do |chef|
+      chef.cookbooks_path = "cookbooks"
+      chef.add_recipe "web"
+      chef.json ={"web" => {"idServer" => "2"}}
+    end
+  end
+  config.vm.define :centos_db do |db|
+    db.vm.box = "Centos64_updated"
+    db.vm.network :private_network, ip: "192.168.33.15"
+    db.vm.network "public_network", bridge: "enp5s0" , ip: "192.168.131.125"
+    db.vm.provider :virtualbox do |vb|
+      vb.customize ["modifyvm", :id, "--memory", "512","--cpus", "1", "--name", "centos-db" ]
+    end
+    config.vm.provision :chef_solo do |chef|
+      chef.cookbooks_path = "cookbooks"
+      chef.add_recipe "db"
+    end
+  end  
+end
+```
 
 3. Escriba los cookbooks necesarios para realizar la instalación de los servicios solicitados (20%)
+
+Para la instalacion de la maquina ngix se escribe le cookbook nginx con la receta installnginx.rb que aproviciona la maquina balanceadora usando el siguiente código:
+
+```ruby
+bash 'open port' do
+   code <<-EOH
+   iptables -I INPUT 5 -p tcp -m state --state NEW -m tcp --dport 8080 -j ACCEPT
+   iptables -I INPUT 5 -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
+   service iptables save
+   EOH
+end
+
+cookbook_file '/etc/yum.repos.d/nginx.repo' do
+   source 'nginx.repo'
+   mode 0777
+end
+
+package 'nginx'
+
+template '/etc/nginx/nginx.conf' do
+   source 'cofig_nginx.erb'
+   mode 0777
+   variables(
+      ipweb1: node[:nginx][:ipweb1],
+      ipweb2: node[:nginx][:ipweb2],
+      puerto_nginx: node[:nginx][:puerto_nginx]
+   )
+end
+
+service 'nginx' do
+   action [:enable, :start]
+end
+```
+
+
+
+
 4. Publicar en un repositorio de github los archivos para el aprovisionamiento junto con un archivo de extensión .md donde explique brevemente como realizar el aprovisionamiento (15%)
 5. Incluya evidencias que muestran el funcionamiento de lo solicitado (15%)
 6. Documente algunos de los problemas encontrados y las acciones efectuadas para su solución al aprovisionar la infraestructura y aplicaciones (10%)
