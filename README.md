@@ -161,7 +161,7 @@ GRANT ALL PRIVILEGES ON *.* to '<%=@usuarioweb_db%>'@'<%=@ip_db1%>' IDENTIFIED b
 
 2. Escriba el archivo Vagrantfile para realizar el aprovisionamiento, teniendo en cuenta definir: maquinas a aprovisionar, interfaces solo anfitrión, interfaces tipo puente, declaración de cookbooks, variables necesarias para plantillas (10%)
 
-Se crea el siguinte archivo vagrantfile. En él se crean 4 maquinas. 1 máquina que servirá como balanceador de carga, usando nginx, llamada centos-nginx. 2 máquinas que servirán como servidores web, utilizando apache, llamadas centos-webX. 1 máquina que se usará como servidor de base de datos, usando mysql-server, llamada centos-db. A continuacion se ilustra el codigo y se muestra la configuracion dada.
+* Se crea el siguinte archivo vagrantfile. En él se crean 4 maquinas. 1 máquina que servirá como balanceador de carga, usando nginx, llamada centos-nginx. 2 máquinas que servirán como servidores web, utilizando apache, llamadas centos-webX. 1 máquina que se usará como servidor de base de datos, usando mysql-server, llamada centos-db. A continuacion se ilustra el codigo y se muestra la configuracion dada.
 
 ```ruby
 VAGRANTFILE_API_VERSION = "2"
@@ -223,7 +223,7 @@ end
 
 3. Escriba los cookbooks necesarios para realizar la instalación de los servicios solicitados (20%)
 
-Para la instalacion de la maquina ngix se escribe le cookbook nginx con la receta installnginx.rb que aproviciona la maquina balanceadora usando el siguiente código:
+Para la instalacion de la maquina ngix se escribe el cookbook nginx con la receta installnginx.rb que aproviciona la maquina balanceadora usando el siguiente código:
 
 ```ruby
 bash 'open port' do
@@ -256,12 +256,126 @@ service 'nginx' do
 end
 ```
 
+Para la instalacion de las maquinas apache se escribe el cookbook web con la receta installweb.rb que aproviciona los servidores web usando el siguiente código:
 
+```ruby
+package 'httpd'
+package 'php'
+package 'php-mysql' #Libreria para conectar php con mysql
+package 'mysql' #Este el cliente de mysql
 
+service 'httpd' do
+ action [:enable, :start]
+end
+
+bash 'open port' do 
+ code <<-EOH
+ iptables -I INPUT 5 -p tcp -m state --state NEW -m tcp --dport 8080 -j ACCEPT
+ iptables -I INPUT 5 -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
+ service iptables save
+EOH
+end
+
+template 'var/www/html/index.php' do
+ source 'index.php.erb'
+ mode 0777
+ variables(
+ idServer: node[:web][:idServer],
+ usuarioweb_web: node[:web][:usuarioweb_web],
+ ip_web: node[:web][:ip_web],
+ passwordweb_web: node[:web][:passwordweb_web]
+ )
+end
+
+cookbook_file '/var/www/html/.htaccess' do
+   source 'htaccess'
+   mode 0777
+end
+```
+
+Para la instalacion de las maquina mysql se escribe el cookbook db con la receta installdb.rb que aproviciona servidor de base de datos usando el siguiente código:
+
+```ruby
+package 'mysql-server'
+
+bash 'extract_module' do
+    code <<-EOH
+    iptables -I INPUT 5 -p tcp -m state --state NEW -m tcp --dport 3306 -j ACCEPT
+    service iptables save
+    EOH
+end
+
+service 'mysqld' do
+ action [:enable, :start]
+end
+
+package 'expect'
+
+template '/tmp/configure_mysql.sh' do
+	source 'configure_mysql.sh.erb'
+	mode 0777
+	variables(
+	password_db: node[:db][:password_db]
+	)
+end
+
+bash 'configure mysql' do
+	cwd '/tmp'
+	code <<-EOH
+	./configure_mysql.sh
+	EOH
+end
+
+template '/tmp/create_schema.sql' do
+	source 'create_schema.sql.erb'
+	mode 0777
+	variables(
+	usuarioweb_db: node[:db][:usuarioweb_db],
+	ip_db: node[:db][:ip_db],
+	ip_db1: node[:db][:ip_db1],
+	passwordweb_db: node[:db][:passwordweb_db]
+	)
+end
+
+bash 'create schema' do 
+	cwd '/tmp'
+	code <<-EOH
+	cat create_schema.sql | mysql -u root -pdistribuidos
+	EOH
+end
+```
 
 4. Publicar en un repositorio de github los archivos para el aprovisionamiento junto con un archivo de extensión .md donde explique brevemente como realizar el aprovisionamiento (15%)
+
+Se publica el examen en el repostorio https://github.com/phalcon30964/examen1-SistemasDistribuidos-ChristianDavidLopezMorcillo
+
+
 5. Incluya evidencias que muestran el funcionamiento de lo solicitado (15%)
+
+Se muestra capturas de 2 accesos a al balanceador, podemos ver como el balanceador redige la peticion a un servidor diferente en cada ocacion.
+
+
+Figura 1: Primer acceso al balanceador
+
+Figura 2: Segundo acceso al balanceador
+
 6. Documente algunos de los problemas encontrados y las acciones efectuadas para su solución al aprovisionar la infraestructura y aplicaciones (10%)
+
+Problema 1: Los serivodores web no podian ser accedidos desde otras maquinas. 
+Solucion 1: Se agregó a iptables las configuraciones necesarias para abir los puertos que apache necesita para recibir peticiones.
+
+Problema 2: Los servidores web no estaban autorizados para acceder a la base de datos y salia un problema de autenticacion. 
+Solicion 2: Se ejecuto un script sql, en el servidor de base de datos, con el comando GRANT ALL PRIVILEGES para garantizar permisos a las ip de los servidores web.
+
+Problema 3: Se requeria ejecutar codigo php en el index de los servidores web, pero no se podia ejecutar.
+Solucion 3: Se modifico el archov .htaccess para dar permiso a qu ese ejecutara codigo php en archivos con formato html.
+
+Problema 4: Nginx no estaba en el repositorio local, por tanto no podia descargase.
+Solucion 4: Se agrego a la lista del repositorio de yum el link de descarga de nginx.
+
+Problema 5: Nginx arrojaba error al tratar de inicializar el servicio de balanceo de cargas.
+Solucion 5: En el archivo nginx.conf se cambio el puerto que venia por defecto, el 80, por el 8080 ya que el 80 estaba siendo usado por otro proceso.
+
 
 
 
