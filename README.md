@@ -1,4 +1,4 @@
-# examen1-SistemasDistribuidos-ChristianDavidLopezMorcillo
+﻿# examen1-SistemasDistribuidos-ChristianDavidLopezMorcillo
 
 Christian David Lopez Morcillo
 A00312096
@@ -13,7 +13,7 @@ A00312096
 
 * Se escoge usar el programa Nginx balanceando cargas bajo el esquema round robin.
 
-Primero se instala el repositorio necesario para poder instalar Ngix, esto se realiza agregando a los repositorios de yum un archivo .repo que indique la ruta para descargar nginx. El archivo se debe agregar en la ruta “/etc/yum.repos.d/” y debe tener la información:
+Primero se instala el repositorio necesario para poder instalar Ngix, esto se realiza agregando a los repositorios de yum un archivo. repo que indique la ruta para descargar nginx. El archivo se debe agregar en la ruta “/etc/yum.repos.d/” y debe tener la información:
 ```text
 [nginx]
 name=nginx repo
@@ -43,9 +43,9 @@ http {
 }
 
 ```
-* Se agregan los permisos necesario para el cortafuegos.
+* Se agregan los permisos necesarios para el cortafuegos.
 ```sh
- iptables -I INPUT 5 -p tcp -m state --state NEW -m tcp --dport 8080 -j ACCEPT
+ iptables -I INPUT 5 -p tcp -m state -- NEW -m tcp --dport 8080 -j ACCEPT
  iptables -I INPUT 5 -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
  service iptables save
 ```
@@ -72,18 +72,18 @@ sudo yum install php-mysql
 ```sh
 sudo yum install mysql
 ```
-* Se agregan los permisos necesario para el cortafuegos.
+* Se agregan los permisos necesarios para el cortafuegos.
 ```sh
  iptables -I INPUT 5 -p tcp -m state --state NEW -m tcp --dport 8080 -j ACCEPT
  iptables -I INPUT 5 -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
  service iptables save
 ```
-* Se habilita el acceso a ejecucion de scripts php en codigo html. Se agrega el archov .htaccess a la carpeta: /var/www/html/ con la siguiente información:
+* Se habilita el acceso a ejecución de scripts php en código html. Se agrega el archivo .htaccess a la carpeta: /var/www/html/ con la siguiente información:
 
 ```txt
 AddType php-script .php .htm .html
 ```
-* Se agrega el archivo index.php a la ruta var/www/html/. Este archivo tiene la funcion de consultar la base de datos a traves de metodos php. El archivo php debe tener el siguiente codigo:
+* Se agrega el archivo index.php a la ruta var/www/html/. Este archivo tiene la función de consultar la base de datos a través de métodos php. El archivo php debe tener el siguiente código:
 
 ```php
 <HTML>
@@ -117,7 +117,7 @@ AddType php-script .php .htm .html
 </HTML>
 ```
 
-* Se iniciia el servicio web.
+* Se inicia el servicio web.
 
 ```sh
 sudo service httpd start
@@ -131,7 +131,7 @@ sudo service httpd start
 sudo service httpd start
 ```
 
-* Se agregan los permisos necesario para el cortafuegos.
+* Se agregan los permisos necesarios para el cortafuegos.
 ```sh
  iptables -I INPUT 5 -p tcp -m state --state NEW -m tcp --dport 3306 -j ACCEPT
  service iptables save 
@@ -141,9 +141,9 @@ sudo service httpd start
 ```sh
  sudo service mysqld start
  ```
-* Se hace la configuracion inicial del servicio mysql con el archivo /usr/bin/mysql_secure_installation.
+* Se hace la configuración inicial del servicio mysql con el archivo /usr/bin/mysql_secure_installation.
 
-* Se instroducen datos a la base de datos y se da persmisos a los servidores web a consultar la base de datos. Se crea y luego ejecuta el archivo create_schema.sql con la siguiente informacion:
+* Se introducen datos a la base de datos y se da permisos a los servidores web a consultar la base de datos. Se crea y luego ejecuta el archivo create_schema.sql con la siguiente información:
 
 ```sql
 CREATE database database1;
@@ -161,7 +161,7 @@ GRANT ALL PRIVILEGES ON *.* to '<%=@usuarioweb_db%>'@'<%=@ip_db1%>' IDENTIFIED b
 
 2. Escriba el archivo Vagrantfile para realizar el aprovisionamiento, teniendo en cuenta definir: maquinas a aprovisionar, interfaces solo anfitrión, interfaces tipo puente, declaración de cookbooks, variables necesarias para plantillas (10%)
 
-* Se crea el siguinte archivo vagrantfile. En él se crean 4 maquinas. 1 máquina que servirá como balanceador de carga, usando nginx, llamada centos-nginx. 2 máquinas que servirán como servidores web, utilizando apache, llamadas centos-webX. 1 máquina que se usará como servidor de base de datos, usando mysql-server, llamada centos-db. A continuacion se ilustra el codigo y se muestra la configuracion dada.
+* Se crea el siguiente archivo vagrantfile. En él se crean 4 máquinas. 1 máquina que servirá como balanceador de carga, usando nginx, llamada centos-nginx. 2 máquinas que servirán como servidores web, utilizando apache, llamadas centos-webX. 1 máquina que se usará como servidor de base de datos, usando mysql-server, llamada centos-db. A continuación, se ilustra el código y se muestra la configuración dada.
 
 ```ruby
 VAGRANTFILE_API_VERSION = "2"
@@ -223,7 +223,7 @@ end
 
 3. Escriba los cookbooks necesarios para realizar la instalación de los servicios solicitados (20%)
 
-Para la instalacion de la maquina ngix se escribe el cookbook nginx con la receta installnginx.rb que aproviciona la maquina balanceadora usando el siguiente código:
+Para la instalación de la máquina ngix se escribe el cookbook nginx con la receta installnginx.rb que aprovisiona la maquina balanceadora usando el siguiente código:
 
 ```ruby
 bash 'open port' do
@@ -256,7 +256,7 @@ service 'nginx' do
 end
 ```
 
-Para la instalacion de las maquinas apache se escribe el cookbook web con la receta installweb.rb que aproviciona los servidores web usando el siguiente código:
+Para la instalación de las máquinas apache se escribe el cookbook web con la receta installweb.rb que aprovisiona los servidores web usando el siguiente código:
 
 ```ruby
 package 'httpd'
@@ -293,7 +293,7 @@ cookbook_file '/var/www/html/.htaccess' do
 end
 ```
 
-Para la instalacion de las maquina mysql se escribe el cookbook db con la receta installdb.rb que aproviciona servidor de base de datos usando el siguiente código:
+Para la instalación de la máquina mysql se escribe el cookbook db con la receta installdb.rb que aprovisiona servidor de base de datos usando el siguiente código:
 
 ```ruby
 package 'mysql-server'
@@ -347,12 +347,12 @@ end
 
 4. Publicar en un repositorio de github los archivos para el aprovisionamiento junto con un archivo de extensión .md donde explique brevemente como realizar el aprovisionamiento (15%)
 
-Se publica el examen en el repostorio https://github.com/phalcon30964/examen1-SistemasDistribuidos-ChristianDavidLopezMorcillo
+Se publica el examen en el repositorio https://github.com/phalcon30964/examen1-SistemasDistribuidos-ChristianDavidLopezMorcillo
 
 
 5. Incluya evidencias que muestran el funcionamiento de lo solicitado (15%)
 
-Se muestra capturas de 2 accesos a al balanceador, podemos ver como el balanceador redige la peticion a un servidor diferente en cada ocacion.
+Se muestra capturas de 2 accesos a al balanceador, podemos ver como el balanceador redirige la petición a un servidor diferente en cada ocasión.
 
 
 Figura 1: Primer acceso al balanceador
@@ -361,20 +361,20 @@ Figura 2: Segundo acceso al balanceador
 
 6. Documente algunos de los problemas encontrados y las acciones efectuadas para su solución al aprovisionar la infraestructura y aplicaciones (10%)
 
-Problema 1: Los serivodores web no podian ser accedidos desde otras maquinas. 
-Solucion 1: Se agregó a iptables las configuraciones necesarias para abir los puertos que apache necesita para recibir peticiones.
+Problema 1: Los servidores web no podían ser accedidos desde otras máquinas. 
+Solución 1: Se agregó a iptables las configuraciones necesarias para abrir los puertos que apache necesita para recibir peticiones.
 
-Problema 2: Los servidores web no estaban autorizados para acceder a la base de datos y salia un problema de autenticacion. 
-Solicion 2: Se ejecuto un script sql, en el servidor de base de datos, con el comando GRANT ALL PRIVILEGES para garantizar permisos a las ip de los servidores web.
+Problema 2: Los servidores web no estaban autorizados para acceder a la base de datos y salía un problema de autenticación. 
+Solución 2: Se ejecutó un script sql, en el servidor de base de datos, con el comando GRANT ALL PRIVILEGES para garantizar permisos a las ip de los servidores web.
 
-Problema 3: Se requeria ejecutar codigo php en el index de los servidores web, pero no se podia ejecutar.
-Solucion 3: Se modifico el archov .htaccess para dar permiso a qu ese ejecutara codigo php en archivos con formato html.
+Problema 3: Se requería ejecutar código php en el índex de los servidores web, pero no se podía ejecutar.
+Solución 3: Se modificó el archivo .htaccess para dar permiso a que ese ejecutará código php en archivos con formato html.
 
-Problema 4: Nginx no estaba en el repositorio local, por tanto no podia descargase.
-Solucion 4: Se agrego a la lista del repositorio de yum el link de descarga de nginx.
+Problema 4: Nginx no estaba en el repositorio local, por tanto, no podía descargase.
+Solución 4: Se agregó a la lista del repositorio de yum el link de descarga de nginx.
 
 Problema 5: Nginx arrojaba error al tratar de inicializar el servicio de balanceo de cargas.
-Solucion 5: En el archivo nginx.conf se cambio el puerto que venia por defecto, el 80, por el 8080 ya que el 80 estaba siendo usado por otro proceso.
+Solución 5: En el archivo nginx.conf se cambió el puerto que venía por defecto, el 80, por el 8080 ya que el 80 estaba siendo usado por otro proceso.
 
 
 
